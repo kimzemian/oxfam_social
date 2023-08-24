@@ -1,0 +1,19 @@
+#!/bin/bash
+SC=""
+if [[ $1 == "amazon" ]]
+then
+  SC="a"
+elif [[ $1 == "walmart" ]]
+then
+  SC="w"
+else
+  echo "Usage: gen_data amazon|walmart"
+  exit 1
+fi
+
+fd "${SC}w.json" /share/dean/reddit/comments -X bat > comments_${SC}w.json
+fd "${SC}w.json" /share/dean/reddit/submissions -X bat > subs_${SC}w.json
+# rg -i "worker|employee" subs_${SC}w.json | jq -c '' > subs_${SC}we.json
+# rg -i "worker|employee" comments_${SC}w.json | jq -c '' > comments_${SC}we.json
+rg -i "worker|employee" comments_${SC}w.json | jq -c '.created_utc |= (. | tonumber) | . |= with_entries(select(.key == "subreddit" or .key == "body" or .key == "subreddit_id" or .key == "author" or .key == "link_id" or .key == "id" or .key == "score" or .key == "created_utc" or .key == "parent_id"))' > comments_${SC}we.json
+rg -i "worker|employee" subs_${SC}w.json | jq -c '.created_utc |= (. | tonumber) | . |= with_entries(select(.key == "title" or .key == "subreddit" or .key == "selftext" or .key == "subreddit_id" or .key == "author" or .key == "link_id" or .key == "id" or .key == "score" or .key == "created_utc" or .key == "parent_id"))' > subs_${SC}we.json
